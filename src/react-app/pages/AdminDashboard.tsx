@@ -2,8 +2,38 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { CheckCircle, XCircle, Clock, Users, LogOut, Shield } from "lucide-react";
 import ProjectManagementCard from "@/react-app/components/ProjectManagementCard";
-import { ProjectType, UserType, UpdateProjectType } from "@/shared/types";
-// import { api, auth } from "@/react-app/utils/api";  // 🚫 removed for now
+
+// ✅ Full ProjectType mock to match your API
+interface UserType {
+  id: number;
+  name: string;
+  role: string;
+  email: string;
+}
+
+interface ProjectType {
+  id: number;
+  name: string;
+  ngo_id: number;
+  land_size: number;
+  location: string;
+  description: string | null;
+  status: "pending" | "verified" | "rejected";
+  price_per_credit: number;
+  total_credits: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface UpdateProjectType {
+  name?: string;
+  land_size?: number;
+  location?: string;
+  description?: string | null;
+  status?: "pending" | "verified" | "rejected";
+  price_per_credit?: number;
+  total_credits?: number | null;
+}
 
 export default function AdminDashboard() {
   const [projects, setProjects] = useState<ProjectType[]>([]);
@@ -12,15 +42,57 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // ✅ Mock user instead of auth.getUser
-    const mockUser: UserType = { id: 1, name: "Admin User", role: "admin", email: "admin@test.com" };
+    // ✅ Mock user
+    const mockUser: UserType = {
+      id: 1,
+      name: "Admin User",
+      role: "admin",
+      email: "admin@test.com",
+    };
     setUser(mockUser);
 
-    // ✅ Mock projects for testing
+    // ✅ Mock projects with full required fields
+    const now = new Date().toISOString();
     const mockProjects: ProjectType[] = [
-      { id: 1, name: "Mangrove Restoration", land_size: 50, status: "pending" },
-      { id: 2, name: "Seagrass Protection", land_size: 30, status: "verified" },
-      { id: 3, name: "Coral Reef Monitoring", land_size: 20, status: "rejected" },
+      {
+        id: 1,
+        name: "Mangrove Restoration",
+        ngo_id: 101,
+        land_size: 50,
+        location: "Kerala, India",
+        description: "Restoring mangroves along the coast",
+        status: "pending",
+        price_per_credit: 10,
+        total_credits: 500,
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        id: 2,
+        name: "Seagrass Protection",
+        ngo_id: 102,
+        land_size: 30,
+        location: "Goa, India",
+        description: "Protecting seagrass meadows",
+        status: "verified",
+        price_per_credit: 12,
+        total_credits: 300,
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        id: 3,
+        name: "Coral Reef Monitoring",
+        ngo_id: 103,
+        land_size: 20,
+        location: "Andaman Islands, India",
+        description: "Monitoring coral reef health",
+        status: "rejected",
+        price_per_credit: 15,
+        total_credits: 200,
+        created_at: now,
+        updated_at: now,
+      },
     ];
 
     setProjects(mockProjects);
@@ -29,8 +101,8 @@ export default function AdminDashboard() {
 
   // ✅ Update project in local state only
   const updateProject = (projectId: number, updates: UpdateProjectType) => {
-    setProjects(prev =>
-      prev.map(project =>
+    setProjects((prev) =>
+      prev.map((project) =>
         project.id === projectId ? { ...project, ...updates } : project
       )
     );
@@ -66,9 +138,9 @@ export default function AdminDashboard() {
     }
   };
 
-  const pendingProjects = projects.filter(p => p.status === "pending");
-  const verifiedProjects = projects.filter(p => p.status === "verified");
-  const rejectedProjects = projects.filter(p => p.status === "rejected");
+  const pendingProjects = projects.filter((p) => p.status === "pending");
+  const verifiedProjects = projects.filter((p) => p.status === "verified");
+  const rejectedProjects = projects.filter((p) => p.status === "rejected");
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -85,8 +157,13 @@ export default function AdminDashboard() {
               </Link>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-300">Welcome, {user?.name}</span>
-              <button onClick={handleLogout} className="text-gray-400 hover:text-gray-200">
+              <span className="text-sm text-gray-300">
+                Welcome, {user?.name}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="text-gray-400 hover:text-gray-200"
+              >
                 <LogOut size={20} />
               </button>
             </div>
@@ -103,7 +180,9 @@ export default function AdminDashboard() {
                 <Clock className="text-blue-600" size={20} />
               </div>
               <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">{pendingProjects.length}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {pendingProjects.length}
+                </p>
                 <p className="text-sm text-gray-600">Pending Reviews</p>
               </div>
             </div>
@@ -115,7 +194,9 @@ export default function AdminDashboard() {
                 <CheckCircle className="text-green-600" size={20} />
               </div>
               <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">{verifiedProjects.length}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {verifiedProjects.length}
+                </p>
                 <p className="text-sm text-gray-600">Approved Projects</p>
               </div>
             </div>
@@ -127,7 +208,9 @@ export default function AdminDashboard() {
                 <XCircle className="text-red-600" size={20} />
               </div>
               <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">{rejectedProjects.length}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {rejectedProjects.length}
+                </p>
                 <p className="text-sm text-gray-600">Rejected Projects</p>
               </div>
             </div>
@@ -139,7 +222,9 @@ export default function AdminDashboard() {
                 <Users className="text-purple-600" size={20} />
               </div>
               <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">{projects.length}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {projects.length}
+                </p>
                 <p className="text-sm text-gray-600">Total Projects</p>
               </div>
             </div>
@@ -162,8 +247,13 @@ export default function AdminDashboard() {
             ) : projects.length === 0 ? (
               <div className="text-center py-12">
                 <Users className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No projects submitted yet</h3>
-                <p className="mt-1 text-sm text-gray-500">Projects will appear here when NGOs submit them for verification.</p>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                  No projects submitted yet
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Projects will appear here when NGOs submit them for
+                  verification.
+                </p>
               </div>
             ) : (
               <div className="space-y-4">

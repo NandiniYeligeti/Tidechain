@@ -12,52 +12,77 @@ export default function NGODashboard() {
   const [user, setUser] = useState<UserType | null>(null);
   const navigate = useNavigate();
 
-  // ✅ Wallet context
   const { address, connectWallet, disconnectWallet } = useContext(WalletContext);
 
   useEffect(() => {
-    // Mock user
-    const mockUser: UserType = { id: "1", name: "Demo NGO", role: "ngo", email: "demo@ngo.org" };
+    const now = new Date().toISOString();
+
+    // ✅ Mock user with all required fields
+    const mockUser: UserType = {
+      id: 1,
+      name: "Demo NGO",
+      role: "ngo",
+      email: "demo@ngo.org",
+      created_at: now,
+    };
     setUser(mockUser);
 
-    // Optional: preload with some mock projects
+    // ✅ Mock projects with all required fields
     setProjects([
       {
-        id: "p1",
+        id: 1,
         name: "Mangrove Restoration",
-        description: "Restoring coastal mangroves",
+        ngo_id: mockUser.id,
         land_size: 50,
+        location: "Kerala, India",
+        description: "Restoring coastal mangroves",
         status: "verified",
+        price_per_credit: 10,
+        total_credits: 500,
+        created_at: now,
+        updated_at: now,
       },
       {
-        id: "p2",
+        id: 2,
         name: "Wetland Protection",
-        description: "Protecting natural wetlands",
+        ngo_id: mockUser.id,
         land_size: 30,
+        location: "Goa, India",
+        description: "Protecting natural wetlands",
         status: "pending",
+        price_per_credit: 12,
+        total_credits: 360,
+        created_at: now,
+        updated_at: now,
       },
-    ] as ProjectType[]);
+    ]);
   }, []);
 
+  // ✅ Correctly typed handleProjectCreated
   const handleProjectCreated = (newProject: ProjectType) => {
+    const now = new Date().toISOString();
     setProjects((prev) => [
       ...prev,
       {
         ...newProject,
-        id: `p${prev.length + 1}`, // simple local id
+        id: prev.length + 1,
+        ngo_id: user?.id || 0,
+        location: newProject.location || "Unknown",
+        price_per_credit: newProject.price_per_credit || 10,
+        total_credits: newProject.total_credits || null,
+        created_at: now,
+        updated_at: now,
         status: "pending",
       },
     ]);
     setShowCreateProject(false);
   };
 
-  const handleLogout = () => {
-    navigate("/");
-  };
+  const handleLogout = () => navigate("/");
 
   const totalCreditsGenerated = projects
     .filter((p) => p.status === "verified")
-    .reduce((sum, p) => sum + (p.land_size * 25), 0);
+    .reduce((sum, p) => sum + p.land_size * 25, 0);
 
   const totalLandProtected = projects
     .filter((p) => p.status === "verified")
@@ -70,9 +95,7 @@ export default function NGODashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Link to="/" className="text-2xl font-bold text-blue-600 mr-8">
-                TideChain
-              </Link>
+              <Link to="/" className="text-2xl font-bold text-blue-600 mr-8">TideChain</Link>
               <h1 className="text-xl font-semibold text-gray-900">NGO Dashboard</h1>
             </div>
             <div className="flex items-center space-x-4">
@@ -91,7 +114,6 @@ export default function NGODashboard() {
                   Connect Wallet
                 </button>
               )}
-
               <span className="text-sm text-gray-600">Welcome, {user?.name}</span>
               <button onClick={handleLogout} className="text-gray-400 hover:text-gray-600">
                 <LogOut size={20} />
@@ -171,9 +193,10 @@ export default function NGODashboard() {
         {showCreateProject && (
           <div className="mb-8">
             <ProjectForm
-              onSuccess={handleProjectCreated}
-              onCancel={() => setShowCreateProject(false)}
-            />
+  onSuccess={() => setShowCreateProject(false)}
+  onCancel={() => setShowCreateProject(false)}
+/>
+
           </div>
         )}
 
@@ -191,7 +214,7 @@ export default function NGODashboard() {
                 key={project.id}
                 project={project}
                 userRole="ngo"
-                onUpdate={() => {}} // noop since no backend
+                onUpdate={() => {}} // noop for now
               />
             ))}
           </div>

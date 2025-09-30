@@ -19,16 +19,19 @@ import { WalletContext } from "@/react-app/context/WalletContext";
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 
-// ✅ Import logos (make sure files exist in src/react-app/assets/)
-import ngoLogo from "@/react-app/assets/ngoLogo.jpg";
-import nccrSeal from "@/react-app/assets/nccr-seal.png";
-
-// Mock Types
+// -------------------- Types --------------------
 interface ProjectType {
   id: number;
+  ngo_id: number;
   name: string;
-  status: string;
+  land_size: number;
   location: string;
+  description: string | null;
+  status: "pending" | "verified" | "rejected";
+  price_per_credit: number;
+  total_credits: number | null;
+  created_at: string;
+  updated_at: string;
 }
 
 interface TransactionType {
@@ -41,6 +44,7 @@ interface TransactionType {
   created_at: string;
 }
 
+// -------------------- Component --------------------
 export default function BuyerDashboard() {
   const [projects, setProjects] = useState<ProjectType[]>([]);
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
@@ -57,11 +61,37 @@ export default function BuyerDashboard() {
   // Mock User
   const [user] = useState<{ name: string }>({ name: "Demo Buyer" });
 
+  // -------------------- Mock Data --------------------
   useEffect(() => {
-    // ✅ Mock data (instead of API calls)
+    const now = new Date().toISOString();
+
     const mockProjects: ProjectType[] = [
-      { id: 1, name: "Mangrove Restoration", status: "verified", location: "Goa, India" },
-      { id: 2, name: "Ocean Cleanup Drive", status: "pending", location: "Kerala, India" },
+      {
+        id: 1,
+        ngo_id: 101,
+        name: "Mangrove Restoration",
+        land_size: 50,
+        location: "Goa, India",
+        description: "Planting mangroves along the coastline.",
+        status: "verified",
+        price_per_credit: 250,
+        total_credits: 20,
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        id: 2,
+        ngo_id: 102,
+        name: "Ocean Cleanup Drive",
+        land_size: 30,
+        location: "Kerala, India",
+        description: "Cleaning beaches and ocean areas.",
+        status: "pending",
+        price_per_credit: 300,
+        total_credits: 15,
+        created_at: now,
+        updated_at: now,
+      },
     ];
 
     const mockTransactions: TransactionType[] = [
@@ -72,7 +102,7 @@ export default function BuyerDashboard() {
         location: "Goa, India",
         credits_purchased: 20,
         total_amount: 5000,
-        created_at: new Date().toISOString(),
+        created_at: now,
       },
     ];
 
@@ -81,6 +111,7 @@ export default function BuyerDashboard() {
     setIsLoading(false);
   }, []);
 
+  // -------------------- Handlers --------------------
   const handlePurchase = (projectId: number, credits: number) => {
     const project = projects.find((p) => p.id === projectId);
     if (!project) return;
@@ -91,7 +122,7 @@ export default function BuyerDashboard() {
       project_name: project.name,
       location: project.location,
       credits_purchased: credits,
-      total_amount: credits * 250, // 💡 mock pricing
+      total_amount: credits * project.price_per_credit,
       created_at: new Date().toISOString(),
     };
 
@@ -109,7 +140,6 @@ export default function BuyerDashboard() {
     navigate("/");
   };
 
-  // ---------- Certificate Generation ----------
   const handleDownloadCertificate = async (transactionId: number) => {
     const transaction = transactions.find((t) => t.id === transactionId);
     if (!transaction) return;
@@ -149,9 +179,7 @@ export default function BuyerDashboard() {
     });
 
     const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
 
-    // Title
     doc.setFontSize(24);
     doc.text("Certificate of Carbon Offset and Retirement", pageWidth / 2, 100, {
       align: "center",
@@ -171,8 +199,8 @@ export default function BuyerDashboard() {
 
     doc.save(`Carbon_Certificate_${certificateId}.pdf`);
   };
-  // ---------- end certificate generation ----------
 
+  // -------------------- Stats --------------------
   const totalCredits = transactions.reduce(
     (sum, t) => sum + t.credits_purchased,
     0
@@ -186,6 +214,7 @@ export default function BuyerDashboard() {
     return true;
   });
 
+  // -------------------- Render --------------------
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -352,11 +381,21 @@ export default function BuyerDashboard() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Project</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Credits</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Certificate</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Project
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Credits
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Amount
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Certificate
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -383,7 +422,9 @@ export default function BuyerDashboard() {
                         </td>
                         <td className="px-6 py-4">
                           <button
-                            onClick={() => handleDownloadCertificate(transaction.id)}
+                            onClick={() =>
+                              handleDownloadCertificate(transaction.id)
+                            }
                             className="inline-flex items-center text-green-600 hover:text-green-700"
                           >
                             <Download size={16} className="mr-1" />
